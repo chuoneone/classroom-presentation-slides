@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="../images/ebook-logo.webp">
+  <title>「我訊息」表達特訓｜課堂互動簡報｜國中教材庫</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;900&family=Plus+Jakarta+Sans:wght@700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans TC"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            display: ['"Plus Jakarta Sans"', '"Noto Sans TC"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            deck: {
+              bg: '#f4efe6',
+              card: '#ffffff',
+              accent: '#e07a42',
+              accentDark: '#c85e26',
+              slate: '#2c353d',
+              dark: '#1e242b',
+              muted: '#727f8d',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body {
+      font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f4efe6;
+      color: #2c353d;
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* 滿版裝飾性背景氣泡 */
+    .bg-circle-1 {
+      position: absolute;
+      right: 4%;
+      top: 14%;
+      width: 340px;
+      height: 340px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(224, 122, 66, 0.16) 0%, rgba(224, 122, 66, 0.01) 70%);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .bg-circle-2 {
+      position: absolute;
+      right: 12%;
+      top: 26%;
+      width: 440px;
+      height: 440px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(79, 140, 125, 0.15) 0%, rgba(79, 140, 125, 0.01) 70%);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .bg-circle-3 {
+      position: absolute;
+      right: 18%;
+      top: 50%;
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(94, 161, 147, 0.2) 0%, rgba(94, 161, 147, 0.01) 70%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* 遮罩點擊顯答（純淨無 emoji） */
+    .answer-mask {
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 0.5rem;
+      padding: 0.15rem 0.6rem;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .answer-mask.hidden-ans {
+      background-color: #e5dfd5;
+      color: transparent !important;
+      border: 1.5px dashed #a89f91;
+      min-width: 120px;
+      text-align: center;
+    }
+    .answer-mask.hidden-ans::after {
+      content: "點擊顯答";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      color: #6e6456;
+      font-size: 0.85rem;
+      font-weight: 700;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .answer-mask.hidden-ans:hover {
+      background-color: #dbd4c8;
+      border-color: #574e40;
+    }
+    .answer-mask.revealed-ans {
+      background-color: #fef08a;
+      color: #854d0e !important;
+      font-weight: 700;
+      border: 1.5px solid #facc15;
+      animation: fadeIn 0.22s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0.5; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* 投影片切換過渡 */
+    .slide-item {
+      display: none;
+      opacity: 0;
+      transform: scale(0.99);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      width: 100%;
+      height: 100%;
+    }
+    .slide-item.active {
+      display: flex;
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* 右下角懸浮藥丸控制盒（預設半透明，滑鼠懸停完全顯現） */
+    .pill-controller {
+      background: rgba(30, 36, 43, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(255, 255, 255, 0.1);
+      opacity: 0.32;
+      transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s ease;
+    }
+    .pill-controller:hover,
+    .pill-controller:focus-within {
+      opacity: 1;
+      transform: translateY(-2px);
+    }
+    .pill-btn {
+      transition: all 0.15s ease;
+    }
+    .pill-btn:hover {
+      background-color: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+    }
+    .pill-btn:active {
+      transform: scale(0.94);
+    }
+
+    /* 黑屏模式 */
+    #blackout-layer {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #000000;
+      z-index: 100;
+    }
+    #blackout-layer.active {
+      display: block;
+    }
+  </style>
+</head>
+<body class="w-screen h-screen select-none overflow-hidden bg-[#f4efe6] flex flex-col justify-between">
+
+  <!-- 裝飾背景氣泡 -->
+  <div class="bg-circle-1"></div>
+  <div class="bg-circle-2"></div>
+  <div class="bg-circle-3"></div>
+
+  <!-- 黑屏層 (快捷鍵 B) -->
+  <div id="blackout-layer" onclick="toggleBlackout()"></div>
+
+  <!-- ==================== 主要簡報舞台 (滿版 Slide Stage) ==================== -->
+  <main class="flex-1 w-full max-w-7xl mx-auto px-6 sm:px-12 py-6 sm:py-8 flex items-center justify-center relative z-10 overflow-hidden">
+
+    <!-- ==================== Slide 0: 封面與核心導讀 ==================== -->
+    <div class="slide-item active flex-col justify-between w-full h-full py-4 sm:py-8" data-slide="0">
+      
+      <!-- 頂部模組膠囊標籤 -->
+      <div>
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#e3ece7] text-[#2c5346] text-xs sm:text-sm font-bold shadow-2xs border border-[#ceddd5]">
+          <span class="w-2 h-2 rounded-full bg-[#3d7a66]"></span>
+          <span>模組一 ‧ 社交技巧與溝通</span>
+        </div>
+
+        <!-- 巨大課程代碼與主標題 -->
+        <div class="mt-6 sm:mt-8">
+          <div class="text-5xl sm:text-7xl font-black font-display text-[#e07a42] tracking-tight">
+            L1
+          </div>
+          <h1 class="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-800 tracking-tight leading-tight mt-1 sm:mt-2">
+            「我訊息」表達特訓
+          </h1>
+          <p class="text-base sm:text-xl text-slate-600 font-medium mt-3 sm:mt-4 max-w-2xl leading-relaxed">
+            把話說清楚，不破壞感情——學會用「事實、感受、影響、期待」表達真實想法。
+          </p>
+        </div>
+      </div>
+
+      <!-- 底部章節導航卡片 (左下方卡片) -->
+      <div class="flex flex-wrap gap-4 mt-6">
+        <button onclick="goToSlide(0)" class="bg-white/95 hover:bg-white text-left p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-md transition hover:-translate-y-1 w-44 sm:w-52">
+          <div class="text-xs font-extrabold text-[#3d7a66] mb-1">第一節</div>
+          <div class="text-base sm:text-lg font-black text-slate-800">4 步驟骨架</div>
+        </button>
+
+        <button onclick="goToSlide(1)" class="bg-white/95 hover:bg-white text-left p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-md transition hover:-translate-y-1 w-44 sm:w-52">
+          <div class="text-xs font-extrabold text-[#e07a42] mb-1">第二節</div>
+          <div class="text-base sm:text-lg font-black text-slate-800">6 大實戰情境</div>
+        </button>
+
+        <button onclick="goToSlide(7)" class="bg-white/95 hover:bg-white text-left p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-md transition hover:-translate-y-1 w-44 sm:w-52">
+          <div class="text-xs font-extrabold text-blue-600 mb-1">第三節</div>
+          <div class="text-base sm:text-lg font-black text-slate-800">實踐 3 要訣</div>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- ==================== Slide 1: 情境 1 未經同意拿走文具 ==================== -->
+    <div class="slide-item flex-col lg:flex-row gap-6 lg:gap-10 items-stretch justify-center w-full h-full py-2" data-slide="1">
+      
+      <!-- 左欄：3D 情境與發生事件 -->
+      <div class="lg:w-5/12 flex flex-col justify-between bg-white/90 backdrop-blur-sm p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-md">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-black text-[#2c5346] bg-[#e3ece7] px-3 py-1 rounded-full border border-[#ceddd5]">情境 1 / 6 ‧ 文具借用</span>
+            <span class="text-xs font-bold text-slate-400">同儕互動</span>
+          </div>
+
+          <div class="w-full aspect-[16/10] rounded-2xl overflow-hidden mb-4 bg-slate-100 border border-slate-200/80 shadow-inner">
+            <img src="../images/socialemotion/imsg_1.webp" alt="未經同意拿走文具" class="w-full h-full object-cover">
+          </div>
+
+          <div class="text-xs font-bold text-slate-500 mb-1">發生什麼事？</div>
+          <p class="text-slate-800 text-sm sm:text-base font-bold leading-relaxed bg-[#f8fafc] p-3.5 rounded-xl border border-slate-200/60">
+            你在專心寫作業時，旁邊同學沒有先問一聲，直接伸手拿走你的自動鉛筆。
+          </p>
+        </div>
+
+        <!-- 刺蝟話警示 -->
+        <div class="mt-3 bg-rose-50 border border-rose-200/80 p-3 rounded-2xl">
+          <div class="text-xs font-black text-rose-800 mb-0.5">刺蝟話（你訊息）：</div>
+          <p class="text-xs sm:text-sm text-rose-700 font-medium">「你很沒禮貌耶！幹嘛偷拿我的筆？每次都這樣！」</p>
+        </div>
+      </div>
+
+      <!-- 右欄：4 步驟我訊息表達拆解 -->
+      <div class="lg:w-7/12 flex flex-col justify-between gap-3">
+        <div class="flex items-center justify-between pb-1 border-b border-slate-300/60">
+          <span class="text-sm font-black text-slate-800">「我訊息」4 步驟口頭表達</span>
+          <span class="text-xs text-slate-500">點擊灰色遮罩揭曉答案</span>
+        </div>
+
+        <!-- 步驟 1 -->
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-blue-700 mb-1">① 事實｜「我看見……」／「當……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「當你剛剛<span class="answer-mask hidden-ans" onclick="toggleMask(this)">沒先問我一聲，就直接拿走我的自動鉛筆時</span>……」
+          </div>
+        </div>
+
+        <!-- 步驟 2 -->
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-rose-600 mb-1">② 感受｜「我覺得……」／「我感到……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「我覺得<span class="answer-mask hidden-ans" onclick="toggleMask(this)">不太被尊重，心裡也有點嚇一跳</span>……」
+          </div>
+        </div>
+
+        <!-- 步驟 3 -->
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-amber-600 mb-1">③ 影響｜「因為這會讓我……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「因為我現在<span class="answer-mask hidden-ans" onclick="toggleMask(this)">正好需要用這支筆寫作業</span>……」
+          </div>
+        </div>
+
+        <!-- 步驟 4 -->
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-emerald-700 mb-1">④ 期待｜「我希望下次可以……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「我希望你下次想借用時，可以<span class="answer-mask hidden-ans" onclick="toggleMask(this)">先開口問我一聲</span>。」
+          </div>
+        </div>
+
+        <!-- 演練提示 -->
+        <div class="bg-[#e9f0ec] border border-[#ceddd5] rounded-2xl p-3 flex items-center justify-between">
+          <div class="text-xs text-[#2c5346] font-bold">
+            課堂演練：兩人一組，看著對方眼睛練習說說看
+          </div>
+          <button onclick="speakSlideText(1)" class="px-3 py-1 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
+            <i class="fas fa-volume-high text-xs text-[#e07a42]"></i> 聽語音示範
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==================== Slide 2: 情境 2 排隊被同學插隊 ==================== -->
+    <div class="slide-item flex-col lg:flex-row gap-6 lg:gap-10 items-stretch justify-center w-full h-full py-2" data-slide="2">
+      
+      <!-- 左欄 -->
+      <div class="lg:w-5/12 flex flex-col justify-between bg-white/90 backdrop-blur-sm p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-md">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-black text-[#2c5346] bg-[#e3ece7] px-3 py-1 rounded-full border border-[#ceddd5]">情境 2 / 6 ‧ 排隊禮儀</span>
+            <span class="text-xs font-bold text-slate-400">生活常規</span>
+          </div>
+
+          <div class="w-full aspect-[16/10] rounded-2xl overflow-hidden mb-4 bg-slate-100 border border-slate-200/80 shadow-inner">
+            <img src="../images/socialemotion/imsg_2.webp" alt="排隊被插隊" class="w-full h-full object-cover">
+          </div>
+
+          <div class="text-xs font-bold text-slate-500 mb-1">發生什麼事？</div>
+          <p class="text-slate-800 text-sm sm:text-base font-bold leading-relaxed bg-[#f8fafc] p-3.5 rounded-xl border border-slate-200/60">
+            在合作社或午餐排隊時，有同學突然從側面直接插進你的前面。
+          </p>
+        </div>
+
+        <div class="mt-3 bg-rose-50 border border-rose-200/80 p-3 rounded-2xl">
+          <div class="text-xs font-black text-rose-800 mb-0.5">刺蝟話（你訊息）：</div>
+          <p class="text-xs sm:text-sm text-rose-700 font-medium">「你眼睛瞎了嗎？不會排隊喔！滾去後面啦！」</p>
+        </div>
+      </div>
+
+      <!-- 右欄 -->
+      <div class="lg:w-7/12 flex flex-col justify-between gap-3">
+        <div class="flex items-center justify-between pb-1 border-b border-slate-300/60">
+          <span class="text-sm font-black text-slate-800">「我訊息」4 步驟口頭表達</span>
+          <span class="text-xs text-slate-500">點擊灰色遮罩揭曉答案</span>
+        </div>
+
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-blue-700 mb-1">① 事實｜「我看見……」／「當……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「我看見大家都在排隊，而你剛剛<span class="answer-mask hidden-ans" onclick="toggleMask(this)">直接走進我前面的隊伍裡</span>……」
+          </div>
+        </div>
+
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-rose-600 mb-1">② 感受｜「我覺得……」／「我感到……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「我感到<span class="answer-mask hidden-ans" onclick="toggleMask(this)">有點不公平，也有點生氣</span>……」
+          </div>
+        </div>
+
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-amber-600 mb-1">③ 影響｜「因為這會讓我……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「因為我們大家都已經<span class="answer-mask hidden-ans" onclick="toggleMask(this)">在原地排隊等很久了</span>……」
+          </div>
+        </div>
+
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-emerald-700 mb-1">④ 期待｜「我希望下次可以……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「我希望你可以遵守排隊秩序，<span class="answer-mask hidden-ans" onclick="toggleMask(this)">到隊伍最後面排隊</span>。」
+          </div>
+        </div>
+
+        <div class="bg-[#e9f0ec] border border-[#ceddd5] rounded-2xl p-3 flex items-center justify-between">
+          <div class="text-xs text-[#2c5346] font-bold">
+            課堂演練：兩人一組，看著對方眼睛練習說說看
+          </div>
+          <button onclick="speakSlideText(2)" class="px-3 py-1 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
+            <i class="fas fa-volume-high text-xs text-[#e07a42]"></i> 聽語音示範
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==================== Slide 3: 情境 3 自習課被同學打擾吵鬧 ==================== -->
+    <div class="slide-item flex-col lg:flex-row gap-6 lg:gap-10 items-stretch justify-center w-full h-full py-2" data-slide="3">
+      
+      <!-- 左欄 -->
+      <div class="lg:w-5/12 flex flex-col justify-between bg-white/90 backdrop-blur-sm p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-md">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-black text-[#2c5346] bg-[#e3ece7] px-3 py-1 rounded-full border border-[#ceddd5]">情境 3 / 6 ‧ 專注與秩序</span>
+            <span class="text-xs font-bold text-slate-400">課堂學習</span>
+          </div>
+
+          <div class="w-full aspect-[16/10] rounded-2xl overflow-hidden mb-4 bg-slate-100 border border-slate-200/80 shadow-inner">
+            <img src="../images/socialemotion/imsg_3.webp" alt="自習課吵鬧" class="w-full h-full object-cover">
+          </div>
+
+          <div class="text-xs font-bold text-slate-500 mb-1">發生什麼事？</div>
+          <p class="text-slate-800 text-sm sm:text-base font-bold leading-relaxed bg-[#f8fafc] p-3.5 rounded-xl border border-slate-200/60">
+            自習課正在準備等一下的小考，旁邊的同學一直大聲講話、拍你的桌子要聊天。
+          </p>
+        </div>
+
+        <div class="mt-3 bg-rose-50 border border-rose-200/80 p-3 rounded-2xl">
+          <div class="text-xs font-black text-rose-800 mb-0.5">刺蝟話（你訊息）：</div>
+          <p class="text-xs sm:text-sm text-rose-700 font-medium">「你很吵耶！閉嘴好不好？煩死人了！」</p>
+        </div>
+      </div>
+
+      <!-- 右欄 -->
+      <div class="lg:w-7/12 flex flex-col justify-between gap-3">
+        <div class="flex items-center justify-between pb-1 border-b border-slate-300/60">
+          <span class="text-sm font-black text-slate-800">「我訊息」4 步驟口頭表達</span>
+          <span class="text-xs text-slate-500">點擊灰色遮罩揭曉答案</span>
+        </div>
+
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-blue-700 mb-1">① 事實｜「我看見……」／「當……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「當你剛才一直<span class="answer-mask hidden-ans" onclick="toggleMask(this)">大聲說話並拍打我的桌子時</span>……」
+          </div>
+        </div>
+
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-rose-600 mb-1">② 感受｜「我覺得……」／「我感到……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「我覺得<span class="answer-mask hidden-ans" onclick="toggleMask(this)">很焦慮，心情也很煩躁</span>……」
+          </div>
+        </div>
+
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-amber-600 mb-1">③ 影響｜「因為這會讓我……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「因為這會讓我<span class="answer-mask hidden-ans" onclick="toggleMask(this)">無法專心讀書準備等一下的小考</span>……」
+          </div>
+        </div>
+
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-emerald-700 mb-1">④ 期待｜「我希望下次可以……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「我希望你現在能<span class="answer-mask hidden-ans" onclick="toggleMask(this)">保持安靜，等下課後我們再一起聊天</span>。」
+          </div>
+        </div>
+
+        <div class="bg-[#e9f0ec] border border-[#ceddd5] rounded-2xl p-3 flex items-center justify-between">
+          <div class="text-xs text-[#2c5346] font-bold">
+            課堂演練：兩人一組，看著對方眼睛練習說說看
+          </div>
+          <button onclick="speakSlideText(3)" class="px-3 py-1 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
+            <i class="fas fa-volume-high text-xs text-[#e07a42]"></i> 聽語音示範
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==================== Slide 4: 情境 4 借出的書本遲遲未還 ==================== -->
+    <div class="slide-item flex-col lg:flex-row gap-6 lg:gap-10 items-stretch justify-center w-full h-full py-2" data-slide="4">
+      
+      <!-- 左欄 -->
+      <div class="lg:w-5/12 flex flex-col justify-between bg-white/90 backdrop-blur-sm p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-md">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-black text-[#2c5346] bg-[#e3ece7] px-3 py-1 rounded-full border border-[#ceddd5]">情境 4 / 6 ‧ 承諾與信任</span>
+            <span class="text-xs font-bold text-slate-400">同儕信用</span>
+          </div>
+
+          <div class="w-full aspect-[16/10] rounded-2xl overflow-hidden mb-4 bg-slate-100 border border-slate-200/80 shadow-inner">
+            <img src="../images/socialemotion/imsg_4.webp" alt="借書未還" class="w-full h-full object-cover">
+          </div>
+
+          <div class="text-xs font-bold text-slate-500 mb-1">發生什麼事？</div>
+          <p class="text-slate-800 text-sm sm:text-base font-bold leading-relaxed bg-[#f8fafc] p-3.5 rounded-xl border border-slate-200/60">
+            你借給同學一本重要的筆記，說好昨天要歸還，但他今天又忘記帶來學校了。
+          </p>
+        </div>
+
+        <div class="mt-3 bg-rose-50 border border-rose-200/80 p-3 rounded-2xl">
+          <div class="text-xs font-black text-rose-800 mb-0.5">刺蝟話（你訊息）：</div>
+          <p class="text-xs sm:text-sm text-rose-700 font-medium">「你每次都說話不算話！真的很討厭耶！」</p>
+        </div>
+      </div>
+
+      <!-- 右欄 -->
+      <div class="lg:w-7/12 flex flex-col justify-between gap-3">
+        <div class="flex items-center justify-between pb-1 border-b border-slate-300/60">
+          <span class="text-sm font-black text-slate-800">「我訊息」4 步驟口頭表達</span>
+          <span class="text-xs text-slate-500">點擊灰色遮罩揭曉答案</span>
+        </div>
+
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-blue-700 mb-1">① 事實｜「我看見……」／「當……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「我們說好昨天要歸還筆記，但我看見你今天<span class="answer-mask hidden-ans" onclick="toggleMask(this)">還是沒有帶過來學校</span>……」
+          </div>
+        </div>
+
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-rose-600 mb-1">② 感受｜「我覺得……」／「我感到……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「我感到<span class="answer-mask hidden-ans" onclick="toggleMask(this)">有些著急，也很擔心複習進度</span>……」
+          </div>
+        </div>
+
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-amber-600 mb-1">③ 影響｜「因為這會讓我……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「因為我今天回家複習功課<span class="answer-mask hidden-ans" onclick="toggleMask(this)">馬上就要參考那本筆記</span>……」
+          </div>
+        </div>
+
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-emerald-700 mb-1">④ 期待｜「我希望下次可以……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「我希望你明天<span class="answer-mask hidden-ans" onclick="toggleMask(this)">一定要記得把筆記帶來學校還給我</span>。」
+          </div>
+        </div>
+
+        <div class="bg-[#e9f0ec] border border-[#ceddd5] rounded-2xl p-3 flex items-center justify-between">
+          <div class="text-xs text-[#2c5346] font-bold">
+            課堂演練：兩人一組，看著對方眼睛練習說說看
+          </div>
+          <button onclick="speakSlideText(4)" class="px-3 py-1 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
+            <i class="fas fa-volume-high text-xs text-[#e07a42]"></i> 聽語音示範
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==================== Slide 5: 情境 5 分組討論沒被分配到工作 ==================== -->
+    <div class="slide-item flex-col lg:flex-row gap-6 lg:gap-10 items-stretch justify-center w-full h-full py-2" data-slide="5">
+      
+      <!-- 左欄 -->
+      <div class="lg:w-5/12 flex flex-col justify-between bg-white/90 backdrop-blur-sm p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-md">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-black text-[#2c5346] bg-[#e3ece7] px-3 py-1 rounded-full border border-[#ceddd5]">情境 5 / 6 ‧ 小組合作</span>
+            <span class="text-xs font-bold text-slate-400">團隊分工</span>
+          </div>
+
+          <div class="w-full aspect-[16/10] rounded-2xl overflow-hidden mb-4 bg-slate-100 border border-slate-200/80 shadow-inner">
+            <img src="../images/socialemotion/imsg_5.webp" alt="分組落單" class="w-full h-full object-cover">
+          </div>
+
+          <div class="text-xs font-bold text-slate-500 mb-1">發生什麼事？</div>
+          <p class="text-slate-800 text-sm sm:text-base font-bold leading-relaxed bg-[#f8fafc] p-3.5 rounded-xl border border-slate-200/60">
+            小組合作進行海報報告，其他組員熱烈討論並分配完工作，卻完全忽略你，沒分派任務給你。
+          </p>
+        </div>
+
+        <div class="mt-3 bg-rose-50 border border-rose-200/80 p-3 rounded-2xl">
+          <div class="text-xs font-black text-rose-800 mb-0.5">刺蝟話（你訊息）：</div>
+          <p class="text-xs sm:text-sm text-rose-700 font-medium">「你們都在排擠我是不是？隨便你們啦，我不管了！」</p>
+        </div>
+      </div>
+
+      <!-- 右欄 -->
+      <div class="lg:w-7/12 flex flex-col justify-between gap-3">
+        <div class="flex items-center justify-between pb-1 border-b border-slate-300/60">
+          <span class="text-sm font-black text-slate-800">「我訊息」4 步驟口頭表達</span>
+          <span class="text-xs text-slate-500">點擊灰色遮罩揭曉答案</span>
+        </div>
+
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-blue-700 mb-1">① 事實｜「我看見……」／「當……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「我看見大家剛才分配完報告的工作，但目前<span class="answer-mask hidden-ans" onclick="toggleMask(this)">還沒有我的任務</span>……」
+          </div>
+        </div>
+
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-rose-600 mb-1">② 感受｜「我覺得……」／「我感到……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「我感到<span class="answer-mask hidden-ans" onclick="toggleMask(this)">有點被冷落，心情也有些失落</span>……」
+          </div>
+        </div>
+
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-amber-600 mb-1">③ 影響｜「因為這會讓我……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「因為我也很想<span class="answer-mask hidden-ans" onclick="toggleMask(this)">為這組出一份力，跟大家一起完成報告</span>……」
+          </div>
+        </div>
+
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-emerald-700 mb-1">④ 期待｜「我希望下次可以……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「我希望我們能<span class="answer-mask hidden-ans" onclick="toggleMask(this)">重新討論一下，分派一個部分讓我負責</span>。」
+          </div>
+        </div>
+
+        <div class="bg-[#e9f0ec] border border-[#ceddd5] rounded-2xl p-3 flex items-center justify-between">
+          <div class="text-xs text-[#2c5346] font-bold">
+            課堂演練：兩人一組，看著對方眼睛練習說說看
+          </div>
+          <button onclick="speakSlideText(5)" class="px-3 py-1 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
+            <i class="fas fa-volume-high text-xs text-[#e07a42]"></i> 聽語音示範
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==================== Slide 6: 情境 6 上課發言時被同學插嘴搶話 ==================== -->
+    <div class="slide-item flex-col lg:flex-row gap-6 lg:gap-10 items-stretch justify-center w-full h-full py-2" data-slide="6">
+      
+      <!-- 左欄 -->
+      <div class="lg:w-5/12 flex flex-col justify-between bg-white/90 backdrop-blur-sm p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-md">
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-black text-[#2c5346] bg-[#e3ece7] px-3 py-1 rounded-full border border-[#ceddd5]">情境 6 / 6 ‧ 發言與傾聽</span>
+            <span class="text-xs font-bold text-slate-400">課堂尊重</span>
+          </div>
+
+          <div class="w-full aspect-[16/10] rounded-2xl overflow-hidden mb-4 bg-slate-100 border border-slate-200/80 shadow-inner">
+            <img src="../images/socialemotion/imsg_6.webp" alt="課堂發言被插嘴" class="w-full h-full object-cover">
+          </div>
+
+          <div class="text-xs font-bold text-slate-500 mb-1">發生什麼事？</div>
+          <p class="text-slate-800 text-sm sm:text-base font-bold leading-relaxed bg-[#f8fafc] p-3.5 rounded-xl border border-slate-200/60">
+            你在課堂上正回答老師的問題，話才說到一半就被同組同學大聲搶話講完。
+          </p>
+        </div>
+
+        <div class="mt-3 bg-rose-50 border border-rose-200/80 p-3 rounded-2xl">
+          <div class="text-xs font-black text-rose-800 mb-0.5">刺蝟話（你訊息）：</div>
+          <p class="text-xs sm:text-sm text-rose-700 font-medium">「你很愛出風頭耶！幹嘛搶我的話？閉嘴啦！」</p>
+        </div>
+      </div>
+
+      <!-- 右欄 -->
+      <div class="lg:w-7/12 flex flex-col justify-between gap-3">
+        <div class="flex items-center justify-between pb-1 border-b border-slate-300/60">
+          <span class="text-sm font-black text-slate-800">「我訊息」4 步驟口頭表達</span>
+          <span class="text-xs text-slate-500">點擊灰色遮罩揭曉答案</span>
+        </div>
+
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-blue-700 mb-1">① 事實｜「我看見……」／「當……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「當我剛才正回答問題，話說到一半時，你<span class="answer-mask hidden-ans" onclick="toggleMask(this)">突然插進來講話</span>……」
+          </div>
+        </div>
+
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-rose-600 mb-1">② 感受｜「我覺得……」／「我感到……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「我覺得想法被打斷了，<span class="answer-mask hidden-ans" onclick="toggleMask(this)">心裡有點委屈和不舒服</span>……」
+          </div>
+        </div>
+
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-amber-600 mb-1">③ 影響｜「因為這會讓我……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「因為這會讓老師<span class="answer-mask hidden-ans" onclick="toggleMask(this)">聽不清楚我本來要表達的完整答案</span>……」
+          </div>
+        </div>
+
+        <div class="bg-white/95 border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs">
+          <div class="text-xs font-black text-emerald-700 mb-1">④ 期待｜「我希望下次可以……」</div>
+          <div class="text-base sm:text-lg font-bold text-slate-800">
+            「我希望下次等我把話說完整之後，你<span class="answer-mask hidden-ans" onclick="toggleMask(this)">再接著補充發表</span>。」
+          </div>
+        </div>
+
+        <div class="bg-[#e9f0ec] border border-[#ceddd5] rounded-2xl p-3 flex items-center justify-between">
+          <div class="text-xs text-[#2c5346] font-bold">
+            課堂演練：兩人一組，看著對方眼睛練習說說看
+          </div>
+          <button onclick="speakSlideText(6)" class="px-3 py-1 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
+            <i class="fas fa-volume-high text-xs text-[#e07a42]"></i> 聽語音示範
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==================== Slide 7: 課堂總結與實踐口訣 ==================== -->
+    <div class="slide-item flex-col justify-between w-full h-full py-4 sm:py-8" data-slide="7">
+      
+      <div>
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#e3ece7] text-[#2c5346] text-xs sm:text-sm font-bold shadow-2xs border border-[#ceddd5] mb-4">
+          <span class="w-2 h-2 rounded-full bg-[#3d7a66]"></span>
+          <span>特訓通關 ‧ 實踐口訣</span>
+        </div>
+
+        <h2 class="text-2xl sm:text-4xl font-black text-slate-800 tracking-tight mb-4">
+          「我訊息」溝通 ‧ 課堂實踐 3 大要訣
+        </h2>
+        <p class="text-sm sm:text-base text-slate-600 font-medium max-w-2xl mb-6">
+          將 4 步驟融入校園生活中，遇到人際摩擦時，先深呼吸 3 秒，再用我訊息溫和表達！
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div class="bg-white/95 p-5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col justify-between">
+            <div>
+              <div class="w-7 h-7 rounded-full bg-slate-800 text-white font-bold text-xs flex items-center justify-center mb-3">1</div>
+              <h4 class="font-black text-slate-800 text-base mb-1.5">眼神堅定，語氣平和</h4>
+              <p class="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                說「我訊息」不是忍耐示弱，而是清楚表達。看著對方眼睛，用冷靜穩定的聲音說出來。
+              </p>
+            </div>
+          </div>
+
+          <div class="bg-white/95 p-5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col justify-between">
+            <div>
+              <div class="w-7 h-7 rounded-full bg-slate-800 text-white font-bold text-xs flex items-center justify-center mb-3">2</div>
+              <h4 class="font-black text-slate-800 text-base mb-1.5">不用誇大指責詞</h4>
+              <p class="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                避免說「你每次都……」、「你總是……」，只講「這次發生的具體事情」，對方更容易接受。
+              </p>
+            </div>
+          </div>
+
+          <div class="bg-white/95 p-5 rounded-2xl border border-slate-200/90 shadow-sm flex flex-col justify-between">
+            <div>
+              <div class="w-7 h-7 rounded-full bg-slate-800 text-white font-bold text-xs flex items-center justify-center mb-3">3</div>
+              <h4 class="font-black text-slate-800 text-base mb-1.5">期待要清楚可行</h4>
+              <p class="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                提出對方真正做得到的具體做法（例如「先問我一聲」、「等下課再聊」），雙方才能達成共識。
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 結尾說明 -->
+      <div class="mt-4 pt-2">
+        <div class="text-sm font-black text-slate-800">恭喜完成 6 大情境特訓！</div>
+        <div class="text-xs text-slate-500 mt-0.5">多加演練，成為高情商溝通高手。</div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ==================== 右下角懸浮「藥丸控制盒 (Pill Controller)」 ==================== -->
+  <div class="fixed bottom-4 right-5 sm:bottom-6 sm:right-8 z-40">
+    <div class="pill-controller text-white rounded-full px-2.5 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold shadow-2xl">
+      
+      <!-- 上一頁 -->
+      <button onclick="prevSlide()" class="pill-btn w-7 h-7 rounded-full flex items-center justify-center text-slate-300 hover:text-white" title="上一頁 (← / P)">
+        <i class="fas fa-chevron-left text-xs"></i>
+      </button>
+
+      <!-- 頁數指示 -->
+      <div id="pill-slide-counter" class="font-mono text-xs sm:text-sm font-bold tracking-wider px-1 text-slate-200 min-w-[42px] text-center">
+        1 / 8
+      </div>
+
+      <!-- 下一頁 -->
+      <button onclick="nextSlide()" class="pill-btn w-7 h-7 rounded-full flex items-center justify-center text-slate-300 hover:text-white" title="下一頁 (→ / N / 空白鍵)">
+        <i class="fas fa-chevron-right text-xs"></i>
+      </button>
+
+      <div class="h-3.5 w-[1px] bg-white/20 mx-0.5"></div>
+
+      <!-- 章節目錄九宮格 (O) -->
+      <button onclick="toggleOverviewModal()" class="pill-btn w-7 h-7 rounded-full flex items-center justify-center text-slate-300 hover:text-white" title="章節目錄 (O)">
+        <i class="fas fa-grip text-xs sm:text-sm"></i>
+      </button>
+
+      <!-- 全螢幕 (F) -->
+      <button onclick="toggleFullScreen()" class="pill-btn w-7 h-7 rounded-full flex items-center justify-center text-slate-300 hover:text-white" title="全螢幕切換 (F)">
+        <i class="fas fa-expand text-xs"></i>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- ==================== 九宮格總覽目錄彈窗 (Overview Modal - 快捷鍵 O) ==================== -->
+  <div id="overview-modal" class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-6" onclick="closeOverviewIfBackdrop(event)">
+    <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[85vh] p-6 overflow-y-auto shadow-2xl border border-slate-200">
+      
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+        <div>
+          <h3 class="text-xl font-black text-slate-900">簡報章節目錄</h3>
+          <p class="text-xs text-slate-500 mt-0.5">點擊卡片直接切換投影片（快捷鍵 O）</p>
+        </div>
+        <button onclick="toggleOverviewModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 font-bold transition">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <!-- 0 -->
+        <button onclick="jumpAndClose(0)" class="text-left p-3.5 rounded-2xl border border-slate-200 hover:border-[#e07a42] hover:bg-orange-50/50 transition group flex flex-col justify-between h-32">
+          <span class="text-xs font-black text-slate-400 group-hover:text-[#e07a42]">第一節 ‧ 核心導讀</span>
+          <div class="font-bold text-sm text-slate-800 leading-snug">4 步驟黃金骨架</div>
+          <span class="text-[10px] text-slate-400">概念架構</span>
+        </button>
+
+        <!-- 1 -->
+        <button onclick="jumpAndClose(1)" class="text-left p-3.5 rounded-2xl border border-slate-200 hover:border-[#3d7a66] hover:bg-emerald-50/50 transition group flex flex-col justify-between h-32">
+          <span class="text-xs font-black text-[#3d7a66]">第二節 ‧ 情境 1</span>
+          <div class="font-bold text-sm text-slate-800 leading-snug">未經同意拿筆</div>
+          <span class="text-[10px] text-slate-400">文具借用</span>
+        </button>
+
+        <!-- 2 -->
+        <button onclick="jumpAndClose(2)" class="text-left p-3.5 rounded-2xl border border-slate-200 hover:border-[#3d7a66] hover:bg-emerald-50/50 transition group flex flex-col justify-between h-32">
+          <span class="text-xs font-black text-[#3d7a66]">第二節 ‧ 情境 2</span>
+          <div class="font-bold text-sm text-slate-800 leading-snug">排隊被插隊</div>
+          <span class="text-[10px] text-slate-400">排隊禮儀</span>
+        </button>
+
+        <!-- 3 -->
+        <button onclick="jumpAndClose(3)" class="text-left p-3.5 rounded-2xl border border-slate-200 hover:border-[#3d7a66] hover:bg-emerald-50/50 transition group flex flex-col justify-between h-32">
+          <span class="text-xs font-black text-[#3d7a66]">第二節 ‧ 情境 3</span>
+          <div class="font-bold text-sm text-slate-800 leading-snug">自習課吵鬧</div>
+          <span class="text-[10px] text-slate-400">專注與秩序</span>
+        </button>
+
+        <!-- 4 -->
+        <button onclick="jumpAndClose(4)" class="text-left p-3.5 rounded-2xl border border-slate-200 hover:border-[#3d7a66] hover:bg-emerald-50/50 transition group flex flex-col justify-between h-32">
+          <span class="text-xs font-black text-[#3d7a66]">第二節 ‧ 情境 4</span>
+          <div class="font-bold text-sm text-slate-800 leading-snug">借筆記未還</div>
+          <span class="text-[10px] text-slate-400">承諾與信任</span>
+        </button>
+
+        <!-- 5 -->
+        <button onclick="jumpAndClose(5)" class="text-left p-3.5 rounded-2xl border border-slate-200 hover:border-[#3d7a66] hover:bg-emerald-50/50 transition group flex flex-col justify-between h-32">
+          <span class="text-xs font-black text-[#3d7a66]">第二節 ‧ 情境 5</span>
+          <div class="font-bold text-sm text-slate-800 leading-snug">分組沒分到工作</div>
+          <span class="text-[10px] text-slate-400">小組合作</span>
+        </button>
+
+        <!-- 6 -->
+        <button onclick="jumpAndClose(6)" class="text-left p-3.5 rounded-2xl border border-slate-200 hover:border-[#3d7a66] hover:bg-emerald-50/50 transition group flex flex-col justify-between h-32">
+          <span class="text-xs font-black text-[#3d7a66]">第二節 ‧ 情境 6</span>
+          <div class="font-bold text-sm text-slate-800 leading-snug">發言被搶話打斷</div>
+          <span class="text-[10px] text-slate-400">發言與傾聽</span>
+        </button>
+
+        <!-- 7 -->
+        <button onclick="jumpAndClose(7)" class="text-left p-3.5 rounded-2xl border border-slate-200 hover:border-blue-600 hover:bg-blue-50/50 transition group flex flex-col justify-between h-32">
+          <span class="text-xs font-black text-blue-600">第三節 ‧ 實踐口訣</span>
+          <div class="font-bold text-sm text-slate-800 leading-snug">課堂 3 大要訣</div>
+          <span class="text-[10px] text-slate-400">通關總結</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== JavaScript 核心互動邏輯 ==================== -->
+  <script>
+    let currentSlide = 0;
+    const totalSlides = 8;
+
+    // 情境完整我訊息語音文本
+    const speechTexts = {
+      1: "當你剛剛沒先問我一聲，就直接拿走我的自動鉛筆時，我覺得不太被尊重，心裡也有點嚇一跳。因為我現在正好需要用這支筆寫作業，我希望你下次想借用時，可以先開口問我一聲。",
+      2: "我看見大家都在排隊，而你剛剛直接走進我前面的隊伍裡，我感到有點不公平，也有點生氣。因為我們大家都已經在原地排隊等很久了，我希望你可以遵守排隊秩序，到隊伍最後面排隊。",
+      3: "當你剛才一直大聲說話並拍打我的桌子時，我覺得很焦慮，心情也很煩躁。因為這會讓我無法專心讀書準備等一下的小考，我希望你現在能保持安靜，等下課後我們再一起聊天。",
+      4: "我們說好昨天要歸還筆記，但我看見你今天還是沒有帶過來學校，我感到有些著急，也很擔心複習進度。因為我今天回家複習功課馬上就要參考那本筆記，我希望你明天一定要記得把筆記帶來學校還給我。",
+      5: "我看見大家剛才分配完報告的工作，但目前還沒有我的任務，我感到有點被冷落，心情也有些失落。因為我也很想為這組出一份力，跟大家一起完成報告，我希望我們能重新討論一下，分派一個部分讓我負責。",
+      6: "當我剛才正回答問題，話說到一半時，你突然插進來講話，我覺得想法被打斷了，心裡有點委屈和不舒服。因為這會讓老師聽不清楚我本來要表達的完整答案，我希望下次等我把話說完整之後，你再接著補充發表。"
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateSlideView();
+
+      // 監聽鍵盤快捷鍵
+      document.addEventListener('keydown', (e) => {
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+
+        if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown' || e.key.toLowerCase() === 'n') {
+          e.preventDefault();
+          nextSlide();
+        } else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key.toLowerCase() === 'p') {
+          e.preventDefault();
+          prevSlide();
+        } else if (e.key.toLowerCase() === 'a') {
+          toggleAllAnswersOnSlide();
+        } else if (e.key.toLowerCase() === 'v') {
+          speakCurrentSlide();
+        } else if (e.key.toLowerCase() === 'o') {
+          toggleOverviewModal();
+        } else if (e.key.toLowerCase() === 'b') {
+          toggleBlackout();
+        } else if (e.key.toLowerCase() === 'f') {
+          toggleFullScreen();
+        }
+      });
+    });
+
+    // 投影片切換
+    function goToSlide(idx) {
+      if (idx < 0) idx = 0;
+      if (idx >= totalSlides) idx = totalSlides - 1;
+      currentSlide = idx;
+      updateSlideView();
+      if (idx === totalSlides - 1) {
+        triggerConfetti();
+      }
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) {
+        goToSlide(currentSlide + 1);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        goToSlide(currentSlide - 1);
+      }
+    }
+
+    function updateSlideView() {
+      const slides = document.querySelectorAll('.slide-item');
+      slides.forEach((s) => {
+        const sIndex = parseInt(s.getAttribute('data-slide'));
+        if (sIndex === currentSlide) {
+          s.classList.add('active');
+        } else {
+          s.classList.remove('active');
+        }
+      });
+
+      // 更新藥丸計數器
+      const text = `${currentSlide + 1} / ${totalSlides}`;
+      const pillCounter = document.getElementById('pill-slide-counter');
+      if (pillCounter) pillCounter.innerText = text;
+    }
+
+    // 單一遮罩點擊顯答
+    function toggleMask(el) {
+      if (el.classList.contains('hidden-ans')) {
+        el.classList.remove('hidden-ans');
+        el.classList.add('revealed-ans');
+      } else {
+        el.classList.remove('revealed-ans');
+        el.classList.add('hidden-ans');
+      }
+    }
+
+    // 一鍵顯答 / 隱藏 (A)
+    function toggleAllAnswersOnSlide() {
+      const activeSlide = document.querySelector('.slide-item.active');
+      if (!activeSlide) return;
+      const masks = activeSlide.querySelectorAll('.answer-mask');
+      if (masks.length === 0) return;
+
+      const hasHidden = Array.from(masks).some(m => m.classList.contains('hidden-ans'));
+      masks.forEach(m => {
+        if (hasHidden) {
+          m.classList.remove('hidden-ans');
+          m.classList.add('revealed-ans');
+        } else {
+          m.classList.remove('revealed-ans');
+          m.classList.add('hidden-ans');
+        }
+      });
+    }
+
+    // 語音朗讀 (V)
+    function speakCurrentSlide() {
+      if (currentSlide === 0) {
+        speakText("用我訊息溝通，把話說清楚，不破壞感情。我訊息包含四個步驟：第一、事實，第二、感受，第三、影響，第四、期待。");
+      } else if (speechTexts[currentSlide]) {
+        speakSlideText(currentSlide);
+      } else if (currentSlide === 7) {
+        speakText("我訊息課堂實踐三大要訣：第一、眼神堅定，語氣平和。第二、不用誇大指責詞。第三、期待要清楚可行。");
+      }
+    }
+
+    function speakSlideText(slideNum) {
+      const text = speechTexts[slideNum];
+      if (text) speakText(text);
+    }
+
+    function speakText(text) {
+      if (!('speechSynthesis' in window)) {
+        alert('您的瀏覽器不支援語音功能');
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'zh-TW';
+      u.rate = 0.92;
+      u.pitch = 1.0;
+      window.speechSynthesis.speak(u);
+    }
+
+    // 九宮格總覽目錄 (O)
+    function toggleOverviewModal() {
+      const modal = document.getElementById('overview-modal');
+      modal.classList.toggle('hidden');
+    }
+
+    function closeOverviewIfBackdrop(e) {
+      if (e.target.id === 'overview-modal') {
+        toggleOverviewModal();
+      }
+    }
+
+    function jumpAndClose(idx) {
+      goToSlide(idx);
+      toggleOverviewModal();
+    }
+
+    // 黑屏 (B)
+    function toggleBlackout() {
+      const layer = document.getElementById('blackout-layer');
+      layer.classList.toggle('active');
+    }
+
+    // 全螢幕 (F)
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen().catch(() => {});
+        }
+      }
+    }
+
+    // 通關彩帶
+    function triggerConfetti() {
+      if (typeof confetti === 'function') {
+        confetti({
+          particleCount: 90,
+          spread: 80,
+          origin: { y: 0.6 }
+        });
+      }
+    }
+  </script>
+</body>
+</html>
